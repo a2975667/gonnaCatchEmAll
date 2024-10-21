@@ -1,4 +1,18 @@
-const pokemonData = [
+export const pokemonData = [
+  {
+    pokemonID: 1,
+    pokemonName: "Bulbasaur",
+    type1: "Grass",
+    type2: "Poison",
+    total: 318,
+    hp: 45,
+    attack: 49,
+    defense: 49,
+    spAtk: 65,
+    spDef: 65,
+    speed: 45,
+    generation: 1,
+  },
   {
     pokemonID: 13,
     pokemonName: "Weedle",
@@ -134,7 +148,7 @@ const pokemonData = [
   },
 ];
 
-const pokemonSpawnData = [
+export const pokemonSpawnData = [
   {
     spawnID: 1,
     num: 13,
