@@ -1,12 +1,16 @@
 import React, {useState, useEffect} from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getPokemonByID, Pokemon } from '../services/services';
+import { getPokemonByID, Pokemon, PokemonSpawn, searchPokemonSpawnData } from '../services/services';
 import PokemonDataCard from '../components/pokemonDataCard/pokemonDataCard';
+import PokemonSpawnTimeline from '../components/pokemonSpawnTimeline/pokemonSpawnTimeline';
 
 const PokemonPage: React.FC = () => {
   const { pokemonID } = useParams();
 
   const [pokemon, setPokemon] = useState<Pokemon | undefined>(undefined);
+  const [pokemonSpawnData, setPokemonSpawnData] = useState<PokemonSpawn[]>([]);
+
+  const [fetchNewSpawnData, setFetchNewSpawnData] = useState<boolean>(false);
 
     useEffect(() => {
         const fetchPokemon = async () => {
@@ -17,6 +21,20 @@ const PokemonPage: React.FC = () => {
     
         fetchPokemon();
     }, [pokemonID]);
+
+    useEffect(() => {
+        const fetchSpawnData = async () => {
+        // Fetch the Pokémon spawn data based on the ID
+        const data = await searchPokemonSpawnData(Number(pokemonID));
+        setPokemonSpawnData(data);
+        };
+    
+        fetchSpawnData();
+    }, [pokemonID, fetchNewSpawnData]);
+
+    const handleDeleteSpawn = async (spawnID: number) => {
+      setFetchNewSpawnData((prevState) => !prevState);
+    };
 
   if (!pokemon) { return <></>; }
 
@@ -43,8 +61,23 @@ const PokemonPage: React.FC = () => {
         <PokemonDataCard pokemon={pokemon} />
       </div>
     )}
+
+    {pokemonSpawnData.length > 0 && (
+        <div className="mx-auto max-w-7xl px-4 sm:px-12 lg:px-8">
+            <PokemonSpawnTimeline spawns={pokemonSpawnData}
+                                  onDelete={handleDeleteSpawn}
+                                  pokemonName={pokemon!.pokemonName}
+                                  pokemonNum={pokemon!.pokemonID}/>
+        </div>
+    )}
+
+    {pokemonSpawnData.length === 0 && (
+        <div className="mx-auto max-w-7xl px-4 sm:px-12 lg:px-8">
+            <p className="text-lg text-gray-600">No spawn data available for this Pokémon.</p>
+            </div>
+            )}
     </>
-  );
-};
+    );
+}
 
 export default PokemonPage;
