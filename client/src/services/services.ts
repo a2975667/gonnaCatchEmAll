@@ -1,4 +1,4 @@
-import { pokemonData, pokemonSpawnData } from "./mockData";
+import axios from "axios";
 
 export interface Pokemon {
     pokemonID: number;
@@ -25,73 +25,54 @@ export interface PokemonSpawn {
     disappear_ms: number;
   }
 
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3007';
+export const httpClient = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 // all APIs related to Pokémon
 
 export const searchPokemonData = (query: string): Promise<Pokemon[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Simulate a backend search by filtering based on the query
-      const filtered = pokemonData.filter((pokemon) =>
-        pokemon.pokemonName.toLowerCase().includes(query.toLowerCase())
-      );
-      resolve(filtered);
-    }, 500); // Simulate a 500ms delay
-  });
+  return httpClient
+    .get(`/pokemon`, {
+      params: { search: query },
+    })
+    .then((response) => response.data);
 };
 
 export const getPokemonByID = (id: number): Promise<Pokemon | undefined> => {
-  return new Promise((resolve) => {
-      setTimeout(() => {
-          const pokemon = pokemonData.find((pokemon) => pokemon.pokemonID === id);
-          resolve(pokemon);
-      }, 500); // Simulate a 500ms delay
-  });
-}
+    return httpClient
+        .get(`/pokemon/${id}`)
+        .then((response) => response.data);
+    };
 
-// all APIs related to Pokémon Pokémon spawn data
-export const searchPokemonSpawnData = (query: number): Promise<PokemonSpawn[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Simulate a backend search by filtering based on the query
-      const filtered = pokemonSpawnData.filter((pokemon) =>
-        pokemon.num === Number(query)
-      );
-      resolve(filtered);
-    }, 500); // Simulate a 500ms delay
-  });
-}
+// all APIs related to Pokémon spawns
+
+export const searchPokemonSpawnData = (
+  query: number
+): Promise<PokemonSpawn[]> => {
+  return httpClient
+    .get(`/pokemon-spawns/pokemon/${query}`)
+    .then((response) => response.data);
+};
 
 export const addPokemonSpawn = (newSpawn: Omit<PokemonSpawn, 'spawnID'>): Promise<PokemonSpawn> => {
-  return new Promise((resolve) => {
-      setTimeout(() => {
-          const newSpawnID = pokemonSpawnData.length + 1; // Auto-incremented ID
-          const createdSpawn = { ...newSpawn, spawnID: newSpawnID };
-          pokemonSpawnData.push(createdSpawn);
-          resolve(createdSpawn); // Return the created spawn with ID
-      }, 500); // Simulate a 500ms delay
-  });
+    return httpClient
+        .post(`/pokemon-spawns`, newSpawn)
+        .then((response) => response.data);
 };
 
 export const updatePokemonSpawn = (updatedSpawn: PokemonSpawn): Promise<void> => {
-  return new Promise((resolve) => {
-      setTimeout(() => {
-          const index = pokemonSpawnData.findIndex((spawn) => spawn.spawnID === updatedSpawn.spawnID);
-          if (index !== -1) {
-              pokemonSpawnData[index] = updatedSpawn;
-          }
-          resolve();
-      }, 500); // Simulate a 500ms delay
-  });
-}
+    return httpClient
+        .put(`/pokemon-spawns/${updatedSpawn.spawnID}`, updatedSpawn)
+        .then((response) => response.data);
+};
 
 export const deletePokemonSpawn = (spawnID: number): Promise<void> => {
-  return new Promise((resolve) => {
-      setTimeout(() => {
-          const index = pokemonSpawnData.findIndex((spawn) => spawn.spawnID === spawnID);
-          if (index !== -1) {
-              pokemonSpawnData.splice(index, 1);
-          }
-          resolve();
-      }, 500); // Simulate a 500ms delay
-  });
-}
+    return httpClient
+        .delete(`/pokemon-spawns/${spawnID}`)
+        .then((response) => response.data);
+};
