@@ -7,7 +7,7 @@ import PokemonPage from './pages/pokemonPage';
 
 const App: React.FC = () => {
   return (
-    <Router>
+    <Router basename={process.env.REACT_APP_BASE_URL || "/"}>
       <Routes>
         <Route path="/" element={<PokedexPage />} />
         <Route path="/searchPokemon/:pokemonID" element={<PokemonPage />} />
