@@ -36,6 +36,10 @@ const PokemonPage: React.FC = () => {
       setFetchNewSpawnData((prevState) => !prevState);
     };
 
+    const handleUpdateSpawn = async () => {
+      setFetchNewSpawnData((prevState) => !prevState);
+    }
+
   if (!pokemon) { return <></>; }
 
   return (
@@ -62,20 +66,14 @@ const PokemonPage: React.FC = () => {
       </div>
     )}
 
-    {pokemonSpawnData.length > 0 && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-12 lg:px-8">
-            <PokemonSpawnTimeline spawns={pokemonSpawnData}
-                                  onDelete={handleDeleteSpawn}
-                                  pokemonName={pokemon!.pokemonName}
-                                  pokemonNum={pokemon!.pokemonID}/>
-        </div>
-    )}
-
-    {pokemonSpawnData.length === 0 && (
-        <div className="mx-auto max-w-7xl px-4 sm:px-12 lg:px-8">
-            <p className="text-lg text-gray-600">No spawn data available for this Pokémon.</p>
-            </div>
-            )}
+    
+    <div className="mx-auto max-w-7xl px-4 sm:px-12 lg:px-8">
+      <PokemonSpawnTimeline spawns={pokemonSpawnData} 
+                  onDelete={handleDeleteSpawn}
+                  onUpdate={handleUpdateSpawn}
+                  pokemonName={pokemon!.pokemonName}
+                  pokemonNum={pokemon!.pokemonID}/>
+    </div>
     </>
     );
 }

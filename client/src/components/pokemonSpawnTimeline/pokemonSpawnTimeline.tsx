@@ -1,5 +1,7 @@
 import React from "react";
-import { deletePokemonSpawn, PokemonSpawn } from "../../services/services";
+import { deletePokemonSpawn, PokemonSpawn, updatePokemonSpawn, addPokemonSpawn} from "../../services/services";
+import SpawnForm from "../spawnForm/spawnForm";
+import { spawn } from "child_process";
 
 // Helper function to format time from Unix timestamp
 const formatDate = (timestamp: number) => {
@@ -10,17 +12,48 @@ const formatDate = (timestamp: number) => {
 
 interface PokemonSpawnTimelineProps {
     spawns: PokemonSpawn[];
+    onDelete: (spawnID: number) => void;
+    onUpdate: () => void;
     pokemonNum: number;
     pokemonName: string;
-
-    onDelete: (spawnID: number) => void;
 }
 
-const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, pokemonName, pokemonNum, onDelete }) => {
+const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, onDelete, onUpdate, pokemonName, pokemonNum }) => {
+
+    const [isFormVistible, setIsFormVisible] = React.useState(false);
+    const [spawnInformationToEdit, setSpawnInformationToEdit] = React.useState<PokemonSpawn | null>(null);
+
+    const handleAddNewSpawn = () => {
+        setSpawnInformationToEdit(null);
+        setIsFormVisible(true);
+    };
+
+    const handleEditSpawn = (spawn: PokemonSpawn) => () => {
+        setSpawnInformationToEdit(spawn);
+        setIsFormVisible(true);
+    };
 
     const handleDelete = async (spawnID: number) => {
         await deletePokemonSpawn(spawnID);
         onDelete(spawnID);
+    };
+
+    const handleFormSubmit = async (spawnData: Omit<PokemonSpawn, 'spawnID' | 'name' | 'num'>) => {
+        const completeSpawnData = {
+            ...spawnData,
+            name: pokemonName,
+            num: pokemonNum
+        };
+
+        if (spawnInformationToEdit) {
+            await updatePokemonSpawn({ ...spawnInformationToEdit, ...completeSpawnData }); // right overwrites left
+        } else {
+            await addPokemonSpawn(completeSpawnData);
+        }
+
+        setSpawnInformationToEdit(null);
+        setIsFormVisible(false);
+        onUpdate();
     };
 
     return (
@@ -28,13 +61,15 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, pok
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Spawn Timeline</h1>
                 {/* Button to add a new spawn */}
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                <button 
+                onClick={handleAddNewSpawn}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
                     + New
                 </button>
             </div>
 
             {/* Timeline List */}
-            <ul
+            {spawns.length >0 && (<ul
                 aria-label="Spawn history feed"
                 role="feed"
                 className="relative flex flex-col gap-12 py-12 pl-6 text-sm before:absolute before:top-0 before:left-6 before:h-full before:-translate-x-1/2 before:border before:border-dashed before:border-slate-200 after:absolute after:top-6 after:left-6 after:bottom-6 after:-translate-x-1/2 after:border after:border-slate-200"
@@ -55,7 +90,9 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, pok
 
                             {/* Edit and Delete buttons */}
                             <div className="flex space-x-4">
-                                <button className="text-indigo-600 hover:text-indigo-900">
+                                <button 
+                                onClick={handleEditSpawn(spawn)}
+                                className="text-indigo-600 hover:text-indigo-900">
                                     Edit
                                 </button>
                                 <button 
@@ -67,7 +104,19 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, pok
                         </div>
                     </li>
                 ))}
-            </ul>
+            </ul>)}
+            {
+                spawns.length === 0 && (
+                    <p className="text-lg text-slate-500">No spawn data available for this Pokémon.</p>
+                )
+            }
+            {
+			isFormVistible && (
+				<SpawnForm onClose={() => setIsFormVisible(false)} 
+				onSubmit={handleFormSubmit}
+				defaultSpawnData={spawnInformationToEdit || undefined} />
+			)
+		}
         </div>
     );
 }
