@@ -1,10 +1,12 @@
 import express, { Request, Response } from 'express';
 import pokemonRoutes from './src/routes/pokemonRoutes';
 import pokemonSpawnRoutes from './src/routes/pokemonSpawnRoutes';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3007;
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/', (req:Request, res:Response) => {
