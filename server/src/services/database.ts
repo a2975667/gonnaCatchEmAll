@@ -1,7 +1,7 @@
-import { RowDataPacket } from "mysql2";
 import { Pokemon } from "../models/pokemon";
 import { PokemonSpawn } from "../models/pokemonSpawn";
 import pool from './connection';
+import { RowDataPacket } from "mysql2";
 
 export async function getAllPokemon(): Promise<Pokemon[]> {
   const [rows] = await pool.query('SELECT * FROM pokemon.pokemon LIMIT 20;');
@@ -24,6 +24,12 @@ export async function getPokemonByID(pokemonID: number): Promise<Pokemon | undef
 export async function getAllPokemonSpawns(): Promise<PokemonSpawn[]> {
   const [rows] = await pool.query('SELECT * FROM pokemon.pokemon_spawn LIMIT 10;');
   return rows as PokemonSpawn[];  
+}
+
+export async function getPokemonSpawnBySpawnID(spawnID: number): Promise<PokemonSpawn | undefined> {
+  const sqlQuery = `SELECT * FROM pokemon_spawn WHERE spawnID = ${spawnID};`;
+  const [rows] = await pool.query<RowDataPacket[]>(sqlQuery);
+  return rows[0] as PokemonSpawn;
 }
 
 export async function getPokemonSpawnByPokemonID(pokemonID: number): Promise<PokemonSpawn[]> {

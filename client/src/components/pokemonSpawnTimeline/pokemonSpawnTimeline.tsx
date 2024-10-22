@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { PokemonSpawn, deletePokemonSpawn, updatePokemonSpawn, addPokemonSpawn } from "../../services/services";
+import { deletePokemonSpawn, PokemonSpawn, updatePokemonSpawn, addPokemonSpawn} from "../../services/services";
 import SpawnForm from "../spawnForm/spawnForm";
 import { getAddressFromLatLng } from "../../utils/geoTransform";
 
@@ -22,7 +22,7 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, onD
 
     const [isFormVistible, setIsFormVisible] = React.useState(false);
     const [spawnInformationToEdit, setSpawnInformationToEdit] = React.useState<PokemonSpawn | null>(null);
-    const [resolvedAddresses, setResolvedAddresses] = React.useState<{ [key: number]: string }>({}); // Holds resolved addresses
+    const [resolvedAddresses, setResolvedAddresses] = React.useState<{ [key: number]: string }>({});
 
     const handleAddNewSpawn = () => {
         setSpawnInformationToEdit(null);
@@ -87,7 +87,7 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, onD
             </div>
 
             {/* Timeline List */}
-            <ul
+            {spawns.length >0 && (<ul
                 aria-label="Spawn history feed"
                 role="feed"
                 className="relative flex flex-col gap-12 py-12 pl-6 text-sm before:absolute before:top-0 before:left-6 before:h-full before:-translate-x-1/2 before:border before:border-dashed before:border-slate-200 after:absolute after:top-6 after:left-6 after:bottom-6 after:-translate-x-1/2 after:border after:border-slate-200"
@@ -114,23 +114,27 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, onD
                                     Edit
                                 </button>
                                 <button 
-                                onClick={() => handleDelete(spawn.spawnID)}
-                                className="text-red-600 hover:text-red-900">
+                                    onClick={() => handleDelete(spawn.spawnID)}
+                                    className="text-red-600 hover:text-red-900">
                                     Delete
                                 </button>
                             </div>
                         </div>
                     </li>
                 ))}
-            </ul>
-
+            </ul>)}
             {
-                isFormVistible && (
-                    <SpawnForm onClose={() => setIsFormVisible(false)} 
-                    onSubmit={handleFormSubmit}
-                    defaultSpawnData={spawnInformationToEdit || undefined} />
+                spawns.length === 0 && (
+                    <p className="text-lg text-slate-500">No spawn data available for this Pokémon.</p>
                 )
             }
+            {
+			isFormVistible && (
+				<SpawnForm onClose={() => setIsFormVisible(false)} 
+				onSubmit={handleFormSubmit}
+				defaultSpawnData={spawnInformationToEdit || undefined} />
+			)
+		}
         </div>
     );
 }

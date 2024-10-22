@@ -4,6 +4,7 @@ import { Pokemon } from "../models/pokemon";
 
 const router = Router();
 
+// api/pokemon?search=pikachu
 router.get("/", async (req: Request, res: Response) => {
   // if there is no query parameter, return all Pokémon
   if (!req.query.search) {
@@ -24,6 +25,7 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+// api/pokemon/1
 router.get("/:id", async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
   try {

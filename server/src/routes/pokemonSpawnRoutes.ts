@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import { getAllPokemonSpawns, getPokemonSpawnByPokemonID, addPokemonSpawn, deletePokemonSpawnbyID, updatePokemonSpawn } from "../services/database";
+import { getAllPokemonSpawns, getPokemonSpawnByPokemonID, addPokemonSpawn, deletePokemonSpawnbyID, updatePokemonSpawn, getPokemonSpawnBySpawnID } from "../services/database";
 import { PokemonSpawn } from "../models/pokemonSpawn";
 
 const router = Router();
@@ -11,7 +11,21 @@ router.get("/", async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ message: "Error fetching Pokémon spawns" });
   }
-});  
+});
+
+router.get("/:id", async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+  try {
+    const pokemonSpawn = await getPokemonSpawnBySpawnID(id);
+    if (pokemonSpawn) {
+      res.status(200).json(pokemonSpawn);
+    } else {
+      res.status(404).json({ message: `No Pokémon spawn found with ID ${id}` });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching Pokémon spawn" });
+  }
+});
 
 router.get("/pokemon/:id", async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
