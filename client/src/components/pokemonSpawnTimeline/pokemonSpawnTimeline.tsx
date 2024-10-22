@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { deletePokemonSpawn, PokemonSpawn, updatePokemonSpawn, addPokemonSpawn} from "../../services/services";
 import SpawnForm from "../spawnForm/spawnForm";
-import { spawn } from "child_process";
+import { getAddressFromLatLng } from "../../utils/geoTransform";
 
 // Helper function to format time from Unix timestamp
 const formatDate = (timestamp: number) => {
@@ -22,6 +22,7 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, onD
 
     const [isFormVistible, setIsFormVisible] = React.useState(false);
     const [spawnInformationToEdit, setSpawnInformationToEdit] = React.useState<PokemonSpawn | null>(null);
+    const [resolvedAddresses, setResolvedAddresses] = React.useState<{ [key: number]: string }>({});
 
     const handleAddNewSpawn = () => {
         setSpawnInformationToEdit(null);
@@ -56,6 +57,23 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, onD
         onUpdate();
     };
 
+    useEffect(() => {
+        const resolveAddresses = async () => {
+          const newResolvedAddresses: { [key: number]: string } = {};
+          for (const spawn of spawns) {
+            try {
+              const address = await getAddressFromLatLng(spawn.lat, spawn.lng);
+              newResolvedAddresses[spawn.spawnID] = address;
+            } catch {
+              newResolvedAddresses[spawn.spawnID] = `Lat: ${spawn.lat}, Lng: ${spawn.lng}`;  // Fallback to coordinates
+            }
+          }
+          setResolvedAddresses(newResolvedAddresses);
+        };
+    
+        resolveAddresses();
+      }, [spawns]);
+
     return (
         <div className="container mx-auto py-8">
             <div className="flex justify-between items-center mb-6">
@@ -85,7 +103,7 @@ const PokemonSpawnTimeline: React.FC<PokemonSpawnTimelineProps> = ({ spawns, onD
                                 {formatDate(spawn.encounter_ms)}
                             </h4>
                             <p className="text-slate-500">
-                                Showed up at latitude {spawn.lat}, longitude {spawn.lng}.
+                                {resolvedAddresses[spawn.spawnID] || `Lat: ${spawn.lat}, Lng: ${spawn.lng}`}  {/* Show address or fallback */}
                             </p>
 
                             {/* Edit and Delete buttons */}

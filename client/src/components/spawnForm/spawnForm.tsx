@@ -1,5 +1,8 @@
 import React from 'react';
 import { PokemonSpawn } from '../../services/services';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import { getLatLngFromAddress } from "../../utils/geoTransform";
 
 interface spawnFormProps {
   onClose: () => void;
@@ -9,18 +12,54 @@ interface spawnFormProps {
 
 const SpawnForm: React.FC<spawnFormProps> = ({ onClose, onSubmit, defaultSpawnData }) => {
 
+  const [address, setAddress] = React.useState<string>("");
+  const [isResolving, setIsResolving] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
+
   const [lat, setLat] = React.useState<number>(defaultSpawnData?.lat || 0);
   const [lng, setLng] = React.useState<number>(defaultSpawnData?.lng || 0);
-  const [encounterTime, setEncounterTime] = React.useState<number>(defaultSpawnData?.encounter_ms || 0);
-  const [disappearTime, setDisappearTime] = React.useState<number>(defaultSpawnData?.disappear_ms || 0);
+  const [encounterDate, setEncounterDate] = React.useState<Date | null>(
+    defaultSpawnData ? new Date(defaultSpawnData.encounter_ms) : new Date()
+  );
+  const [disappearDate, setDisappearDate] = React.useState<Date | null>(
+    defaultSpawnData ? new Date(defaultSpawnData.disappear_ms) : new Date()
+  );
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddress(e.target.value);
+    setError(null);
+  };
+
+  const handleAddressBlur = async () => {
+    if (address) {
+        setIsResolving(true);
+        try {
+            const { lat, lng } = await getLatLngFromAddress(address);
+            setLat(lat);
+            setLng(lng);
+        } catch (error) {
+            setError("Failed to fetch coordinates from address. Please check the address.");
+            setLat(-1);
+            setLng(-1);
+        } finally {
+            setIsResolving(false);
+        }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+  
+    if (!encounterDate || !disappearDate) {
+      alert('Please select valid dates.');
+      return;
+    }
+  
     onSubmit({
-        lat, lng, encounter_ms: encounterTime, disappear_ms: disappearTime,
+      lat, lng, encounter_ms: encounterDate.getTime(), disappear_ms: disappearDate.getTime()
     });
     onClose();
-};
+  };
 
 return (
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
@@ -30,64 +69,62 @@ return (
           </h2>
   
           <form onSubmit={handleSubmit}>
-            {/* Latitude Field */}
-            <div>
-              <label htmlFor="lat" className="block text-sm font-medium text-gray-900">
-                Latitude
-              </label>
-              <input
-                id="lat"
-                type="number"
-                value={lat}
-                onChange={(e) => setLat(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              />
-            </div>
-  
-            {/* Longitude Field */}
-            <div className="mt-4">
-              <label htmlFor="lng" className="block text-sm font-medium text-gray-900">
-                Longitude
-              </label>
-              <input
-                id="lng"
-                type="number"
-                value={lng}
-                onChange={(e) => setLng(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              />
-            </div>
+          {/* Address Field */}
+          <div>
+          <label
+            htmlFor="address"
+            className="block text-sm font-medium text-gray-900"
+      >
+            Address
+          </label>
+          <input
+            id="address"
+            type="text"
+            value={address}
+            onChange={handleAddressChange}
+            onBlur={handleAddressBlur}
+            placeholder="Enter the address"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          />
+          {isResolving && <p className="text-sm text-gray-500 mt-1">Resolving address...</p>}
+          {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
+          </div>
+
+          {/* Latitude and Longitude */}
+          <div className="mt-4">
+          <p className="text-sm text-gray-600">
+            Latitude: {lat}, Longitude: {lng}
+          </p>
+          </div>
   
             {/* Encounter Time Field */}
             <div className="mt-4">
-              <label htmlFor="encounterTime" className="block text-sm font-medium text-gray-900">
-                Encounter Timestamp (ms)
-              </label>
-              <input
-                id="encounterTime"
-                type="number"
-                value={encounterTime}
-                onChange={(e) => setEncounterTime(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              />
+            <label htmlFor="encounterDate" className="block text-sm font-medium text-gray-900">
+              Encounter Date and Time
+            </label>
+            <DatePicker
+              selected={encounterDate}
+              onChange={(date: Date | null) => setEncounterDate(date)}
+              showTimeSelect
+              dateFormat="Pp"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              required
+            />
             </div>
-  
-            {/* Disappear Time Field */}
+
+            {/* Disappear Date Field */}
             <div className="mt-4">
-              <label htmlFor="disappearTime" className="block text-sm font-medium text-gray-900">
-                Disappear Timestamp (ms)
-              </label>
-              <input
-                id="disappearTime"
-                type="number"
-                value={disappearTime}
-                onChange={(e) => setDisappearTime(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                required
-              />
+            <label htmlFor="disappearDate" className="block text-sm font-medium text-gray-900">
+              Disappear Date and Time
+            </label>
+            <DatePicker// 
+              selected={disappearDate}
+              onChange={(date: Date | null) => setDisappearDate(date)}
+              showTimeSelect
+              dateFormat="Pp"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              required
+            />
             </div>
   
             {/* Buttons */}
