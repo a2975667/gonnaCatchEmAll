@@ -1,7 +1,6 @@
 import React from "react";
 import { deletePokemonSpawn, PokemonSpawn, updatePokemonSpawn, addPokemonSpawn} from "../../services/services";
 import SpawnForm from "../spawnForm/spawnForm";
-import { spawn } from "child_process";
 
 // Helper function to format time from Unix timestamp
 const formatDate = (timestamp: number) => {
