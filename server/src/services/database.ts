@@ -10,45 +10,84 @@ export async function getAllPokemon(): Promise<Pokemon[]> {
 
 export async function getPokemonByPokemonName(pokemonName: string): Promise<Pokemon[]> {
   const queryName = pokemonName.toLowerCase();
-  const sqlQuery = `SELECT * FROM pokemon.pokemon WHERE pokemonName LIKE '%${queryName}%';`;
-  const [rows] = await pool.query(sqlQuery);
+  const sqlQuery = 'SELECT * FROM pokemon.pokemon WHERE pokemonName LIKE ?;';
+  const [rows] = await pool.query(sqlQuery, [`%${queryName}%`]);
   return rows as Pokemon[];
 }
 
 export async function getPokemonByID(pokemonID: number): Promise<Pokemon | undefined> {
-  const sqlQuery = `SELECT * FROM pokemon WHERE pokemonID = ${pokemonID};`;
-  const [rows] = await pool.query<RowDataPacket[]>(sqlQuery);
+  const sqlQuery = 'SELECT * FROM pokemon.pokemon WHERE pokemonID = ?;';
+  const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, [pokemonID]);
   return rows[0] as Pokemon;
 }
 
 export async function getAllPokemonSpawns(): Promise<PokemonSpawn[]> {
-  const [rows] = await pool.query('SELECT * FROM pokemon.pokemon_spawn LIMIT 10;');
+  const sqlQuery = `
+    SELECT spawnID, pokemonID AS num, pokemonName AS name, lat, lng, encounter_ms, disappear_ms
+    FROM pokemon.pokemon_spawn
+    ORDER BY encounter_ms DESC
+    LIMIT 10;
+  `;
+  const [rows] = await pool.query(sqlQuery);
   return rows as PokemonSpawn[];  
 }
 
 export async function getPokemonSpawnBySpawnID(spawnID: number): Promise<PokemonSpawn | undefined> {
-  const sqlQuery = `SELECT * FROM pokemon_spawn WHERE spawnID = ${spawnID};`;
-  const [rows] = await pool.query<RowDataPacket[]>(sqlQuery);
+  const sqlQuery = `
+    SELECT spawnID, pokemonID AS num, pokemonName AS name, lat, lng, encounter_ms, disappear_ms
+    FROM pokemon.pokemon_spawn
+    WHERE spawnID = ?;
+  `;
+  const [rows] = await pool.query<RowDataPacket[]>(sqlQuery, [spawnID]);
   return rows[0] as PokemonSpawn;
 }
 
 export async function getPokemonSpawnByPokemonID(pokemonID: number): Promise<PokemonSpawn[]> {
-  const sqlQuery = `SELECT * FROM pokemon_spawn WHERE pokemonID = ${pokemonID} order by encounter_ms desc limit 10;`;
-  const [rows] = await pool.query(sqlQuery);
+  const sqlQuery = `
+    SELECT spawnID, pokemonID AS num, pokemonName AS name, lat, lng, encounter_ms, disappear_ms
+    FROM pokemon.pokemon_spawn
+    WHERE pokemonID = ?
+    ORDER BY encounter_ms DESC
+    LIMIT 10;
+  `;
+  const [rows] = await pool.query(sqlQuery, [pokemonID]);
   return rows as PokemonSpawn[];
 }
 
 export async function addPokemonSpawn(spawn: Omit<PokemonSpawn, 'spawnID'>): Promise<void> {
-  const sqlQuery = `INSERT INTO pokemon_spawn (pokemonID, pokemonName, lat, lng, encounter_ms, disappear_ms) VALUES (${spawn.num}, '${spawn.name}', ${spawn.lat}, ${spawn.lng}, ${spawn.encounter_ms}, ${spawn.disappear_ms});`;
-  await pool.query(sqlQuery);
+  const sqlQuery = `
+    INSERT INTO pokemon.pokemon_spawn
+      (pokemonID, pokemonName, lat, lng, encounter_ms, disappear_ms)
+    VALUES (?, ?, ?, ?, ?, ?);
+  `;
+  await pool.query(sqlQuery, [
+    spawn.num,
+    spawn.name,
+    spawn.lat,
+    spawn.lng,
+    spawn.encounter_ms,
+    spawn.disappear_ms
+  ]);
 }
 
 export async function updatePokemonSpawn(spawn: PokemonSpawn): Promise<void> {
-  const sqlQuery = `UPDATE pokemon_spawn SET pokemonID = ${spawn.num}, pokemonName = '${spawn.name}', lat = ${spawn.lat}, lng = ${spawn.lng}, encounter_ms = ${spawn.encounter_ms}, disappear_ms = ${spawn.disappear_ms} WHERE spawnID = ${spawn.spawnID};`;
-  await pool.query(sqlQuery);
+  const sqlQuery = `
+    UPDATE pokemon.pokemon_spawn
+    SET pokemonID = ?, pokemonName = ?, lat = ?, lng = ?, encounter_ms = ?, disappear_ms = ?
+    WHERE spawnID = ?;
+  `;
+  await pool.query(sqlQuery, [
+    spawn.num,
+    spawn.name,
+    spawn.lat,
+    spawn.lng,
+    spawn.encounter_ms,
+    spawn.disappear_ms,
+    spawn.spawnID
+  ]);
 }
 
 export async function deletePokemonSpawnbyID(spawnID: number): Promise<void> {
-  const sqlQuery = `DELETE FROM pokemon_spawn WHERE spawnID = ${spawnID};`;
-  await pool.query(sqlQuery);
+  const sqlQuery = 'DELETE FROM pokemon.pokemon_spawn WHERE spawnID = ?;';
+  await pool.query(sqlQuery, [spawnID]);
 }
