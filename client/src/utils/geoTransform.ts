@@ -4,17 +4,25 @@ import axios from 'axios';
 
 const GOOGLE_MAPS_API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 
+const requireMapsApiKey = (): string => {
+  if (!GOOGLE_MAPS_API_KEY) {
+    throw new Error("REACT_APP_GOOGLE_MAPS_API_KEY is not set");
+  }
+  return GOOGLE_MAPS_API_KEY;
+};
+
 /**
  * Converts an address into latitude and longitude using the Google Geocoding API.
  * @param address The address to geocode.
  * @returns An object containing latitude and longitude.
  */
 export const getLatLngFromAddress = async (address: string): Promise<{ lat: number; lng: number }> => {
+  const mapsApiKey = requireMapsApiKey();
   try {
     const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
       params: {
         address,
-        key: GOOGLE_MAPS_API_KEY,
+        key: mapsApiKey,
       },
     });
 
@@ -37,11 +45,12 @@ export const getLatLngFromAddress = async (address: string): Promise<{ lat: numb
  * @returns The address as a string.
  */
 export const getAddressFromLatLng = async (lat: number, lng: number): Promise<string> => {
+  const mapsApiKey = requireMapsApiKey();
   try {
     const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json`, {
       params: {
         latlng: `${lat},${lng}`,
-        key: GOOGLE_MAPS_API_KEY,
+        key: mapsApiKey,
       },
     });
 
