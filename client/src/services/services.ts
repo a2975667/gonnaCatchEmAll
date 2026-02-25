@@ -25,7 +25,7 @@ export interface PokemonSpawn {
     disappear_ms: number;
   }
 
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3007";
+const BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:3007/api";
 
 export const httpClient = axios.create({
   baseURL: BASE_URL,
