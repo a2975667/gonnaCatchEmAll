@@ -38,9 +38,7 @@ const SpawnForm: React.FC<spawnFormProps> = ({ onClose, onSubmit, defaultSpawnDa
             setLat(lat);
             setLng(lng);
         } catch (error) {
-            setError("Failed to fetch coordinates from address. Please check the address.");
-            setLat(-1);
-            setLng(-1);
+            setError("Failed to fetch coordinates from address. Please check the address or enter coordinates manually.");
         } finally {
             setIsResolving(false);
         }
@@ -117,7 +115,7 @@ return (
             <label htmlFor="disappearDate" className="block text-sm font-medium text-gray-900">
               Disappear Date and Time
             </label>
-            <DatePicker// 
+            <DatePicker
               selected={disappearDate}
               onChange={(date: Date | null) => setDisappearDate(date)}
               showTimeSelect
